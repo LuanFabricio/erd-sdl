@@ -40,7 +40,7 @@ int main(void)
 			node, node->key, node->value, *(int*)node->value, node->kind);
 	}
 
-	parse_from_file("./config");
+	parse_from_file("./sample.erd");
 
 	return 0;
 }
