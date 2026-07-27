@@ -1,9 +1,11 @@
-#include "hash_map.h"
-#include "log.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+
+#include "utils.h"
+#include "hash_map.h"
+#include "log.h"
 
 #define BUFFER_CAPACITY 0xff
 
@@ -72,6 +74,21 @@ HashMap parse_from_file(const char* filename)
 			case TK_END_STATEMENT: {
 				log_format(stdout, LOG_LABEL_INFO, "key:%s\n", key);
 				log_format(stdout, LOG_LABEL_INFO, "value:%s\n", parser.buffer.value);
+
+				Node n = node_from_cstr(key, parser.buffer.value);
+				char buffer[NODE_VALUE_BUFFER_LEN];
+				memset(buffer, 0, NODE_VALUE_BUFFER_LEN);
+				node_value_to_cstr(n, buffer);
+				log_format(stdout, LOG_LABEL_INFO,
+					"\n"
+					"key:%s\n"
+					"value_ptr: %p\n"
+					"value: %s\n"
+					"kind: %s(%i)\n",
+					n.key,
+					n.value, buffer,
+					node_kind_to_cstr(n.kind), n.kind);
+
 				buffer_clear(&parser.buffer);
 				state = ST_QUERY_ID;
 			} continue;

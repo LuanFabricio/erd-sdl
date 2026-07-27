@@ -2,6 +2,8 @@
 
 #include "dynamic_array.h"
 
+#define NODE_VALUE_BUFFER_LEN 50
+
 /**
  * SDL structure
  * key=value, where the value can be
@@ -11,7 +13,8 @@
  */
 
 typedef enum {
-	NODE_KIND_INT = 0,
+	NODE_KIND_INVALID = 0,
+	NODE_KIND_INT,
 	NODE_KIND_FLOAT,
 	NODE_KIND_STRING,
 	NODE_KIND_RECURSIVE_DATA,
@@ -31,3 +34,6 @@ typedef da_create(Node) HashMap;
 
 size_t hash_map_key_index(const HashMap* map, const char* key);
 void hash_map_append(HashMap* map, Node node);
+Node node_from_cstr(const char* key, const char* value);
+const char* node_kind_to_cstr(const Node_Kind kind);
+void node_value_to_cstr(Node n, char buffer[NODE_VALUE_BUFFER_LEN]);

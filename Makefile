@@ -1,11 +1,11 @@
 BUILD_FOLDER := build
 TARGET := $(BUILD_FOLDER)/main
-CFLAGS = -Iinclude
+CFLAGS = -Iinclude -lm -ggdb
 
 SRC_DIR := src
 SRC_FILES := $(shell find $(SRC_DIR) -type f -name '*.c')
 
-all: build
+all: build_folder
 	cc -o $(TARGET) ./main.c $(SRC_FILES) $(CFLAGS)
 
 build_folder:
