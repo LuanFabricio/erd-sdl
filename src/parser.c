@@ -45,15 +45,6 @@ typedef struct {
 	State state;
 } Parser;
 
-static bool is_alphanum(int value)
-{
-	const bool alpha = (value >= 'a' && value <= 'z')
-		|| (value >= 'A' && value <= 'Z');
-	const bool num = value >= '0' && value <= '9';
-
-	return alpha || num;
-}
-
 HashMap parse_from_file(const char* filename)
 {
 	FILE* file = fopen(filename, "r");
