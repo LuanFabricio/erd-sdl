@@ -11,36 +11,22 @@
 
 int main(void)
 {
-	srand(time(NULL));
-
-	HashMap map = {0};
-	for (int i = 0; i < 10; i++) {
-		Node node = {
-			.value = malloc(sizeof(int)),
-			.kind = (rand() % NODE_KIND_LEN) - 1
-		};
-		memset(node.key, 0, 10);
-		snprintf(node.key, 10, "%c%c", 'a' + i, 'a' + rand() % 24);
-		*(int*)node.value = 42;
-
-		hash_map_append(&map, node);
+	HashMap parsed_map = parse_from_file("./sample.erd");
+	for (size_t i = 0; i < parsed_map.size; i++) {
+		Node node = parsed_map.items[i];
+		char buffer[NODE_VALUE_BUFFER_LEN];
+		memset(buffer, 0, NODE_VALUE_BUFFER_LEN);
+		node_value_to_cstr(node, buffer);
+		log_format(stdout, LOG_LABEL_INFO,
+				"\n"
+				"key:%s\n"
+				"value_ptr: %p\n"
+				"value: %s\n"
+				"kind: %s(%i)\n",
+				node.key,
+				node.value, buffer,
+				node_kind_to_cstr(node.kind), node.kind);
 	}
-
-	for (size_t i = 0; i < map.size; i++) {
-		Node *node = &map.items[i];
-
-		log_format(
-			stdout,
-			LOG_LABEL_INFO,
-			"%p:\n"
-			"\tkey=%s\n"
-			"\tvalue ptr=%p\n"
-			"\tvalue int=%d\n"
-			"\tkind=%u\n",
-			node, node->key, node->value, *(int*)node->value, node->kind);
-	}
-
-	parse_from_file("./sample.erd");
 
 	return 0;
 }

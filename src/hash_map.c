@@ -76,7 +76,6 @@ Node node_from_cstr(const char key[NODE_KEY_CAPACITY], const char* value)
 	const size_t value_len = strlen(value);
 	for (size_t i = 0; i < value_len; i++) {
 		const char token = value[i];
-		log_format(stdout, LOG_LABEL_INFO, "token: %c(%b)\n", token, is_alpha(token));
 		if (is_alpha(token)) {
 			kind = NODE_KIND_STRING;
 			break;
