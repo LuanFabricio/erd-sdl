@@ -75,21 +75,10 @@ HashMap parse_from_file(const char* filename)
 				log_format(stdout, LOG_LABEL_INFO, "key:%s\n", key);
 				log_format(stdout, LOG_LABEL_INFO, "value:%s\n", parser.buffer.value);
 
-				Node n = node_from_cstr(key, parser.buffer.value);
-				char buffer[NODE_VALUE_BUFFER_LEN];
-				memset(buffer, 0, NODE_VALUE_BUFFER_LEN);
-				node_value_to_cstr(n, buffer);
-				log_format(stdout, LOG_LABEL_INFO,
-					"\n"
-					"key:%s\n"
-					"value_ptr: %p\n"
-					"value: %s\n"
-					"kind: %s(%i)\n",
-					n.key,
-					n.value, buffer,
-					node_kind_to_cstr(n.kind), n.kind);
+				Node node = node_from_cstr(key, parser.buffer.value);
 
 				buffer_clear(&parser.buffer);
+				hash_map_append(&map, node);
 				state = ST_QUERY_ID;
 			} continue;
 			case TK_STRING_QUOTE: continue;
@@ -104,5 +93,26 @@ HashMap parse_from_file(const char* filename)
 
 	log_format(stdout, LOG_LABEL_INFO, "key:%s\n", key);
 	log_format(stdout, LOG_LABEL_INFO, "value:%s\n", parser.buffer.value);
+
+	Node node = node_from_cstr(key, parser.buffer.value);
+	hash_map_append(&map, node);
+	buffer_clear(&parser.buffer);
+
+	for (size_t i = 0; i < map.size; i++) {
+		Node node = map.items[i];
+		char buffer[NODE_VALUE_BUFFER_LEN];
+		memset(buffer, 0, NODE_VALUE_BUFFER_LEN);
+		node_value_to_cstr(node, buffer);
+		log_format(stdout, LOG_LABEL_INFO,
+				"\n"
+				"key:%s\n"
+				"value_ptr: %p\n"
+				"value: %s\n"
+				"kind: %s(%i)\n",
+				node.key,
+				node.value, buffer,
+				node_kind_to_cstr(node.kind), node.kind);
+	}
+
 	return map;
 }
