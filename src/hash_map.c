@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <math.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -105,14 +104,7 @@ Node node_from_cstr(const char key[NODE_KEY_CAPACITY], const char* value)
 			*(int*)node.value = atoi(value);
 	       } break;
 		case NODE_KIND_FLOAT: {
-			const char* right = value + dot_last_index + 1;
-			*(float*)node.value = atoi(value) / powf(10, value_len - dot_last_index);
-
-			char *left = malloc(sizeof(char) * value_len);
-			left[dot_last_index] = '\0';
-			*(float*)node.value += atoi(left);
-			free(left);
-			log_format(stdout, LOG_LABEL_INFO, "%f\n", *(float*)node.value);
+			*(float*)node.value = atof(value);
 	       } break;
 		default:
 			assert(false && "Invalid `Node_Kind`");
