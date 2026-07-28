@@ -1,6 +1,6 @@
 BUILD_FOLDER := build
 TARGET := $(BUILD_FOLDER)/main
-CFLAGS = -Iinclude -lm -ggdb
+CFLAGS = -Iinclude -lm -lraylib -ggdb
 
 SRC_DIR := src
 SRC_FILES := $(shell find $(SRC_DIR) -type f -name '*.c')
