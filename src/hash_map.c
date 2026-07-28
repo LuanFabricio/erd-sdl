@@ -47,15 +47,18 @@ void hash_map_append(HashMap* map, Node node)
 		log_format(stdout, LOG_LABEL_WARNING, "Key `%s` already exists in the hash map (index %lu).\n", node.key, index);
 
 		const Node* node = &map->items[index];
+		char temp_buffer[NODE_VALUE_BUFFER_LEN];
+		memset(temp_buffer, 0, NODE_VALUE_BUFFER_LEN);
+		node_value_to_cstr(*node, temp_buffer);
 		log_format(
 			stdout,
 			LOG_LABEL_INFO,
 			"%p:\n"
 			"\tkey=%s\n"
 			"\tvalue ptr=%p\n"
-			"\tvalue int=%d\n"
+			"\tvalue=%s\n"
 			"\tkind=%u\n",
-			node, node->key, node->value, *(int*)node->value, node->kind);
+			node, node->key, node->value, temp_buffer, node->kind);
 		return;
 	}
 
@@ -118,6 +121,7 @@ const char* node_kind_to_cstr(const Node_Kind kind)
 		case NODE_KIND_INT: return "int";
 		case NODE_KIND_FLOAT: return "float";
 		case NODE_KIND_STRING: return "string";
+		case NODE_KIND_MAP: return "map";
 		default:
 			assert(false && "Unreacheable");
 	}
@@ -135,7 +139,34 @@ void node_value_to_cstr(Node n, char buffer[NODE_VALUE_BUFFER_LEN])
 		case NODE_KIND_STRING:
 			snprintf(buffer, NODE_VALUE_BUFFER_LEN, "%s", (char*)n.value);
 			break;
+		case NODE_KIND_MAP: {
+			HashMap m = *(HashMap*)n.value;
+			// NOTE: Maybe print the nested values
+			snprintf(buffer, NODE_VALUE_BUFFER_LEN, "map size %zu", m.size); } break;
 		default:
 			assert(false && "Unreacheable");
+	}
+}
+
+void hash_map_log(const HashMap map, const int depth)
+{
+	for (size_t i = 0; i < map.size; i++) {
+		Node node = map.items[i];
+		char buffer[NODE_VALUE_BUFFER_LEN];
+		memset(buffer, 0, NODE_VALUE_BUFFER_LEN);
+		node_value_to_cstr(node, buffer);
+		log_format(stdout, LOG_LABEL_INFO,
+				"\n"
+				"%*skey:%s\n"
+				"%*svalue_ptr: %p\n"
+				"%*svalue: %s\n"
+				"%*skind: %s(%i)\n",
+				depth * 2, "", node.key,
+				depth * 2, "", node.value,
+				depth * 2, "", buffer,
+				depth * 2, "", node_kind_to_cstr(node.kind), node.kind);
+		if (node.kind == NODE_KIND_MAP) {
+			hash_map_log(*(HashMap*)node.value, depth+1);
+		}
 	}
 }
