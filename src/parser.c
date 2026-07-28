@@ -1,10 +1,14 @@
 #include <assert.h>
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
+#include "log.h"
 #include "utils.h"
 #include "hash_map.h"
+
+#include "parser.h"
 
 #define BUFFER_CAPACITY 0xff
 
@@ -46,9 +50,19 @@ typedef struct {
 	State state;
 } Parser;
 
-HashMap parse_from_file(const char* filename)
+HashMap parse_from_filename(const char* filename)
 {
 	FILE* file = fopen(filename, "r");
+
+	HashMap map = parse_from_file(file);
+	fclose(file);
+
+	return map;
+}
+
+HashMap parse_from_file(FILE* file)
+{
+	log_format(stdout, LOG_LABEL_INFO, "position: %zu\n", ftell(file));
 
 	Parser parser = {
 		.buffer = { .size = 0 },
@@ -60,7 +74,8 @@ HashMap parse_from_file(const char* filename)
 	char key[BUFFER_CAPACITY];
 	int state = ST_QUERY_ID;
 	int current_token;
-	while((current_token = fgetc(file)) != EOF) {
+	do {
+		current_token = fgetc(file);
 		switch (current_token) {
 			case TK_ATTRIBUITION: {
 				state = ST_QUERY_VALUE;
@@ -73,6 +88,21 @@ HashMap parse_from_file(const char* filename)
 				hash_map_append(&map, node);
 				state = ST_QUERY_ID;
 			} continue;
+			case TK_BEGIN_MAP: {
+				log_format(stdout, LOG_LABEL_INFO, "Buffer: %s\n", parser.buffer.value);
+				Node node = {
+					.kind = NODE_KIND_MAP,
+					.value = malloc(sizeof(HashMap)),
+				};
+				strncpy(node.key, key, NODE_KEY_CAPACITY);
+				HashMap m = parse_from_file(file);
+				log_format(stdout, LOG_LABEL_INFO, "map size: %zu\n", m.size);
+				*(HashMap*)node.value = m;
+				hash_map_append(&map, node);
+				log_format(stdout, LOG_LABEL_INFO, "position: %zu\n", ftell(file));
+				state = ST_QUERY_ID;
+			} continue;
+			case TK_END_MAP: return map;
 			case TK_STRING_QUOTE: continue;
 		}
 		if (!is_alphanum(current_token) && current_token != TK_FLOAT) {
@@ -80,12 +110,12 @@ HashMap parse_from_file(const char* filename)
 		}
 
 		buffer_append_char(&parser.buffer, (char)current_token);
+	} while(current_token != EOF);
+	if (current_token == EOF && state == ST_QUERY_VALUE) {
+		Node node = node_from_cstr(key, parser.buffer.value);
+		buffer_clear(&parser.buffer);
+		hash_map_append(&map, node);
 	}
-	fclose(file);
-
-	Node node = node_from_cstr(key, parser.buffer.value);
-	hash_map_append(&map, node);
-	buffer_clear(&parser.buffer);
 
 	return map;
 }
