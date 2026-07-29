@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stddef.h>
+
 #include "dynamic_array.h"
 
 #define NODE_VALUE_BUFFER_LEN 50
@@ -37,5 +39,5 @@ size_t hash_map_key_index(const HashMap* map, const char* key);
 void hash_map_append(HashMap* map, Node node);
 Node node_from_cstr(const char* key, const char* value);
 const char* node_kind_to_cstr(const Node_Kind kind);
-void node_value_to_cstr(Node n, char buffer[NODE_VALUE_BUFFER_LEN]);
+void node_value_to_cstr(const HashMap map, const size_t node_index, char buffer[NODE_VALUE_BUFFER_LEN]);
 void hash_map_log(const HashMap map, const int depth);

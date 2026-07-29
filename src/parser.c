@@ -36,6 +36,7 @@ typedef enum {
 	TK_BEGIN_MAP='{',
 	TK_END_MAP='}',
 	TK_END_STATEMENT=',',
+	TK_RECURSIVE='@',
 	TK_FLOAT='.',
 } Token;
 
@@ -101,7 +102,7 @@ HashMap parse_from_file(FILE* file)
 			case TK_END_MAP: return map;
 			case TK_STRING_QUOTE: continue;
 		}
-		if (!is_alphanum(current_token) && current_token != TK_FLOAT) {
+		if (!is_alphanum(current_token) && current_token != TK_FLOAT && current_token != TK_RECURSIVE) {
 			continue;
 		}
 
