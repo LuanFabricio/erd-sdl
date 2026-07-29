@@ -62,8 +62,6 @@ HashMap parse_from_filename(const char* filename)
 
 HashMap parse_from_file(FILE* file)
 {
-	log_format(stdout, LOG_LABEL_INFO, "position: %zu\n", ftell(file));
-
 	Parser parser = {
 		.buffer = { .size = 0 },
 		.state = ST_QUERY_ID,
@@ -89,19 +87,15 @@ HashMap parse_from_file(FILE* file)
 				state = ST_QUERY_ID;
 			} continue;
 			case TK_BEGIN_MAP: {
-				log_format(stdout, LOG_LABEL_INFO, "Buffer: %s\n", parser.buffer.value);
 				Node node = {
 					.kind = NODE_KIND_MAP,
 					.value = malloc(sizeof(HashMap)),
 				};
 				strncpy(node.key, key, NODE_KEY_CAPACITY);
 				HashMap m = parse_from_file(file);
-				log_format(stdout, LOG_LABEL_INFO, "map size: %zu\n", m.size);
 				*(HashMap*)node.value = m;
 				hash_map_append(&map, node);
-				log_format(stdout, LOG_LABEL_INFO, "position: %zu\n", ftell(file));
 				state = ST_QUERY_ID;
-				log_format(stdout, LOG_LABEL_INFO, "ST: %d|key: %s|buffer: %s|\n", state, key, parser.buffer.value);
 				fseek(file, 1, SEEK_CUR);
 			} continue;
 			case TK_END_MAP: return map;
