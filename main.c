@@ -1,14 +1,9 @@
-#include <time.h>
-#include <stdlib.h>
 #include <stddef.h>
-#include <stdio.h>
 #include <stdbool.h>
-#include <string.h>
 
 #include "raylib.h"
 
 #include "hash_map.h"
-#include "log.h"
 #include "parser.h"
 
 int main(void)
