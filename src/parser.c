@@ -101,6 +101,8 @@ HashMap parse_from_file(FILE* file)
 				hash_map_append(&map, node);
 				log_format(stdout, LOG_LABEL_INFO, "position: %zu\n", ftell(file));
 				state = ST_QUERY_ID;
+				log_format(stdout, LOG_LABEL_INFO, "ST: %d|key: %s|buffer: %s|\n", state, key, parser.buffer.value);
+				fseek(file, 1, SEEK_CUR);
 			} continue;
 			case TK_END_MAP: return map;
 			case TK_STRING_QUOTE: continue;
