@@ -2,6 +2,7 @@
 #include "log.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define TEMP_BUFFER_LEN 1024
 static char temp_buffer[TEMP_BUFFER_LEN];
@@ -118,4 +119,20 @@ size_t string_view_split(const String_View sv, const char c, String_View **buffe
 	}
 
 	return splits;
+}
+
+void string_view_strip_char(String_View* sv, const char search)
+{
+	char* buffer = malloc(sv->size);
+	size_t buffer_size = 0;
+	for (size_t i = 0; i < sv->size; i++) {
+		if (sv->data[i] == search) {
+			continue;
+		}
+		buffer[buffer_size++] = sv->data[i];
+	}
+
+	memcpy(sv->data, buffer, buffer_size);
+	sv->size = buffer_size;
+	free(buffer);
 }

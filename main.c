@@ -49,14 +49,15 @@ int main(void)
 
 
 	sv.size = 0;
-	string_view_append(&sv, "v1@v2@v3");
+	string_view_append(&sv, "@v1.@v2.@v3");
+	string_view_strip_char(&sv, '@');
 	log_format(
 		stdout,
 		LOG_LABEL_INFO,
 		SV_FORMAT"\n", (int)sv.size, sv.data);
 
 	String_View *split = NULL;
-	const size_t split_len = string_view_split(sv, '@', &split);
+	const size_t split_len = string_view_split(sv, '.', &split);
 	log_format(
 		stdout,
 		LOG_LABEL_INFO,

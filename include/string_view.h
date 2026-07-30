@@ -17,3 +17,4 @@ bool string_view_compare_cstr(const String_View sv, const char* cstr);
 size_t string_view_count_char(const String_View sv, const char c);
 size_t string_view_split(const String_View sv, const char c, String_View  **buffer);
 void string_view_free(String_View *sv);
+void string_view_strip_char(String_View* sv, const char search);

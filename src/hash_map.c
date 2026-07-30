@@ -147,6 +147,7 @@ void node_value_to_cstr(const HashMap map, const size_t node_index, char *buffer
 		case NODE_KIND_RECURSIVE_DATA: {
 				String_View sv = {0};
 				string_view_append(&sv, n.value);
+				string_view_strip_char(&sv, '@');
 				String_View *split = NULL;
 				size_t split_len = string_view_split(sv, '.', &split);
 
@@ -157,7 +158,7 @@ void node_value_to_cstr(const HashMap map, const size_t node_index, char *buffer
 					// TODO: Refactor/extract this
 					memset(temp_buffer, 0, sizeof(temp_buffer));
 					assert(sizeof(temp_buffer) > split->size);
-					memcpy(temp_buffer, split[i].data+1, split->size-1);
+					memcpy(temp_buffer, split[i].data, split->size);
 					size_t j = hash_map_key_index(current_map, temp_buffer);
 					assert(j != -1);
 					Node *n = &map.items[j];
@@ -167,14 +168,14 @@ void node_value_to_cstr(const HashMap map, const size_t node_index, char *buffer
 				}
 				memset(temp_buffer, 0, sizeof(temp_buffer));
 				assert(sizeof(temp_buffer) > split->size);
-				memcpy(temp_buffer, split[split_len-1].data+1, split->size-1);
+				memcpy(temp_buffer, split[split_len-1].data, split->size);
 				size_t i = hash_map_key_index(current_map, temp_buffer);
 				// TODO: Add the buffer size as parameter
 				snprintf(
 					buffer,
 					NODE_VALUE_BUFFER_LEN,
-					"recursive("SV_FORMAT")|",
-					(int)sv.size, sv.data);
+					"recursive(%s)|",
+					(char*)n.value);
 				const size_t buffer_offset = strlen(buffer);
 				node_value_to_cstr(*current_map, i, buffer + buffer_offset);
 
