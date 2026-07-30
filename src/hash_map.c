@@ -149,7 +149,6 @@ void node_value_to_cstr(const HashMap map, const size_t node_index, char *buffer
 				string_view_append(&sv, n.value);
 				String_View *split = NULL;
 				size_t split_len = string_view_split(sv, '.', &split);
-				string_view_free(&sv);
 
 				// TODO: Move temp_buffer size to a const
 				char temp_buffer[0xff];
@@ -170,7 +169,16 @@ void node_value_to_cstr(const HashMap map, const size_t node_index, char *buffer
 				assert(sizeof(temp_buffer) > split->size);
 				memcpy(temp_buffer, split[split_len-1].data+1, split->size-1);
 				size_t i = hash_map_key_index(current_map, temp_buffer);
-				node_value_to_cstr(*current_map, i, buffer);
+				// TODO: Add the buffer size as parameter
+				snprintf(
+					buffer,
+					NODE_VALUE_BUFFER_LEN,
+					"recursive("SV_FORMAT")|",
+					(int)sv.size, sv.data);
+				const size_t buffer_offset = strlen(buffer);
+				node_value_to_cstr(*current_map, i, buffer + buffer_offset);
+
+				string_view_free(&sv);
 				for (size_t i = 0; i < split_len; i++) {
 					string_view_free(&split[i]);
 				}
