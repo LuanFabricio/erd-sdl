@@ -25,6 +25,13 @@ void string_view_append(String_View *sv, const char* cstr)
 	sv->size = new_size;
 }
 
+void string_view_free(String_View *sv)
+{
+	sv->size = 0;
+	free(sv->data);
+	sv->data = NULL;
+}
+
 bool string_view_compare(const String_View sv1, const String_View sv2)
 {
 	if (sv1.size != sv2.size) {
