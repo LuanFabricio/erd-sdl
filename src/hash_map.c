@@ -7,6 +7,7 @@
 #include "log.h"
 #include "utils.h"
 #include "hash_map.h"
+#include "string_view.h"
 
 static void* node_malloc_by_kind(const Node_Kind kind, size_t len)
 {
@@ -144,20 +145,35 @@ void node_value_to_cstr(const HashMap map, const size_t node_index, char *buffer
 			snprintf(buffer, NODE_VALUE_BUFFER_LEN, "%f", *(float*)n.value);
 			break;
 		case NODE_KIND_RECURSIVE_DATA: {
+				String_View sv = {0};
+				string_view_append(&sv, n.value);
+				String_View *split = NULL;
+				size_t split_len = string_view_split(sv, '.', &split);
+				string_view_free(&sv);
+
+				// TODO: Move temp_buffer size to a const
 				char temp_buffer[0xff];
-				strncpy(temp_buffer, n.value + 1, 0xff);
-				const size_t value_len = strlen(temp_buffer);
-				for (size_t i = 0; i < value_len; i++) {
-					if (temp_buffer[i] == '.') {
-						temp_buffer[i] = '\0';
-						break;
-					}
+				const HashMap* current_map = &map;
+				for (size_t i = 0; i < split_len - 1; i++) {
+					// TODO: Refactor/extract this
+					memset(temp_buffer, 0, sizeof(temp_buffer));
+					assert(sizeof(temp_buffer) > split->size);
+					memcpy(temp_buffer, split[i].data+1, split->size-1);
+					size_t j = hash_map_key_index(current_map, temp_buffer);
+					assert(j != -1);
+					Node *n = &map.items[j];
+					assert(n != NULL);
+					assert(n->kind == NODE_KIND_MAP);
+					current_map = n->value;
 				}
-				const size_t i = hash_map_key_index(&map, temp_buffer);
-				assert(i >= 0 && "Key not found");
-				assert(i < map.size && "Key index out of bounds");
-				// TODO: Fetch the node and get the value
-				node_value_to_cstr(map, i, buffer);
+				memset(temp_buffer, 0, sizeof(temp_buffer));
+				assert(sizeof(temp_buffer) > split->size);
+				memcpy(temp_buffer, split[split_len-1].data+1, split->size-1);
+				size_t i = hash_map_key_index(current_map, temp_buffer);
+				node_value_to_cstr(*current_map, i, buffer);
+				for (size_t i = 0; i < split_len; i++) {
+					string_view_free(&split[i]);
+				}
 		       } break;
 		case NODE_KIND_STRING:
 			snprintf(buffer, NODE_VALUE_BUFFER_LEN, "%s", (char*)n.value);
