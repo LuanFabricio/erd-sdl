@@ -110,10 +110,6 @@ size_t string_view_split(const String_View sv, const char c, String_View **buffe
 				TEMP_BUFFER_LEN,
 				SV_FORMAT,
 				(int)temp_buffer_len, sv.data + last_index_c);
-			log_format(
-				stdout,
-				LOG_LABEL_INFO,
-				"%s\n", temp_buffer);
 			string_view_append((*buffer + j), temp_buffer);
 			j++;
 			last_index_c = i + 1;
