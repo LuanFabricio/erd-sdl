@@ -61,6 +61,20 @@ HashMap parse_from_filename(const char* filename)
 	return map;
 }
 
+static bool should_skip_token(int token)
+{
+
+	const bool is_not_tk_float = token != TK_FLOAT;
+	const bool is_not_tk_recursive = token != TK_RECURSIVE;
+	const bool is_not_tk_recursive_kind = token != NODE_RECURSIVE_KIND_KEY
+		&& token != NODE_RECURSIVE_KIND_VALUE;
+
+	return !is_alphanum(token)
+		&& is_not_tk_float
+		&& is_not_tk_recursive
+		&& is_not_tk_recursive_kind;
+}
+
 HashMap parse_from_file(FILE* file)
 {
 	Parser parser = {
@@ -103,12 +117,7 @@ HashMap parse_from_file(FILE* file)
 			case TK_STRING_QUOTE: continue;
 		}
 
-		// TODO: Create a should_skip function
-		const bool is_not_tk_float = current_token != TK_FLOAT;
-		const bool is_not_tk_recursive = current_token != TK_RECURSIVE;
-		const bool is_not_tk_recursive_kind = current_token != NODE_RECURSIVE_KIND_KEY
-			&& current_token != NODE_RECURSIVE_KIND_VALUE;
-		if (!is_alphanum(current_token) && is_not_tk_float && is_not_tk_recursive && is_not_tk_recursive_kind) {
+		if (should_skip_token(current_token)) {
 			continue;
 		}
 
