@@ -9,6 +9,8 @@
 #include "hash_map.h"
 #include "string_view.h"
 
+#define HASH_MAP_TEMP_BUFFER_SIZE 1024
+
 static void* node_malloc_by_kind(const Node_Kind kind, size_t len)
 {
 	size_t bytes = 0;
@@ -134,6 +136,48 @@ const char* node_kind_to_cstr(const Node_Kind kind)
 	}
 }
 
+static ssize_t node_recursive_value_index(const HashMap **map, size_t node_index)
+{
+	assert(*map != NULL);
+
+	Node n = (*map)->items[node_index];
+	String_View sv = {0};
+	string_view_append(&sv, n.value);
+	string_view_strip_char(&sv, '@');
+	String_View *split = NULL;
+	size_t split_len = string_view_split(sv, '.', &split);
+
+	char temp_buffer[HASH_MAP_TEMP_BUFFER_SIZE];
+	const HashMap* current_map = *map;
+	for (size_t i = 0; i < split_len - 1; i++) {
+		// TODO: Refactor/extract this
+		memset(temp_buffer, 0, sizeof(temp_buffer));
+		assert(sizeof(temp_buffer) > split->size);
+		memcpy(temp_buffer, split[i].data, split->size);
+
+		ssize_t j = hash_map_key_index(current_map, temp_buffer);
+		assert(j != -1);
+
+		Node *current_node = &current_map->items[j];
+		assert(current_node != NULL);
+		assert(current_node->kind == NODE_KIND_MAP);
+
+		current_map = current_node->value;
+	}
+	assert(sizeof(temp_buffer) > split->size);
+	memset(temp_buffer, 0, sizeof(temp_buffer));
+	memcpy(temp_buffer, split[split_len-1].data, split->size);
+
+	ssize_t i = hash_map_key_index(current_map, temp_buffer);
+
+	string_view_free(&sv);
+	for (size_t i = 0; i < split_len; i++) {
+		string_view_free(&split[i]);
+	}
+
+	return i;
+}
+
 void node_value_to_cstr(const HashMap map, const size_t node_index, char *buffer)
 {
 	Node n = map.items[node_index];
@@ -145,44 +189,17 @@ void node_value_to_cstr(const HashMap map, const size_t node_index, char *buffer
 			snprintf(buffer, NODE_VALUE_BUFFER_LEN, "%f", *(float*)n.value);
 			break;
 		case NODE_KIND_RECURSIVE_DATA: {
-				String_View sv = {0};
-				string_view_append(&sv, n.value);
-				string_view_strip_char(&sv, '@');
-				String_View *split = NULL;
-				size_t split_len = string_view_split(sv, '.', &split);
-
-				// TODO: Move temp_buffer size to a const
-				char temp_buffer[0xff];
 				const HashMap* current_map = &map;
-				for (size_t i = 0; i < split_len - 1; i++) {
-					// TODO: Refactor/extract this
-					memset(temp_buffer, 0, sizeof(temp_buffer));
-					assert(sizeof(temp_buffer) > split->size);
-					memcpy(temp_buffer, split[i].data, split->size);
-					size_t j = hash_map_key_index(current_map, temp_buffer);
-					assert(j != -1);
-					Node *n = &map.items[j];
-					assert(n != NULL);
-					assert(n->kind == NODE_KIND_MAP);
-					current_map = n->value;
-				}
-				memset(temp_buffer, 0, sizeof(temp_buffer));
-				assert(sizeof(temp_buffer) > split->size);
-				memcpy(temp_buffer, split[split_len-1].data, split->size);
-				size_t i = hash_map_key_index(current_map, temp_buffer);
+				const ssize_t final_node_index = node_recursive_value_index(&current_map, node_index);
+				assert(final_node_index != -1);
 				// TODO: Add the buffer size as parameter
 				snprintf(
 					buffer,
 					NODE_VALUE_BUFFER_LEN,
-					"recursive(%s)|",
+					"%s=",
 					(char*)n.value);
 				const size_t buffer_offset = strlen(buffer);
-				node_value_to_cstr(*current_map, i, buffer + buffer_offset);
-
-				string_view_free(&sv);
-				for (size_t i = 0; i < split_len; i++) {
-					string_view_free(&split[i]);
-				}
+				node_value_to_cstr(*current_map, final_node_index, buffer + buffer_offset);
 		       } break;
 		case NODE_KIND_STRING:
 			snprintf(buffer, NODE_VALUE_BUFFER_LEN, "%s", (char*)n.value);
