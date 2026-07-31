@@ -18,8 +18,8 @@ void string_view_append(String_View *sv, const char* cstr)
 	const size_t new_size = sv->size + cstr_len;
 
 	if (new_size > prev_size) {
-		// TODO: Check if `realloc` always alloc when
-		// the pointer is NULL.
+		// NOTE: According with `man realloc(3)`
+		// "If p is NULL, then the call is equivalent to malloc(size), for all values of size."
 		sv->data = realloc(sv->data, new_size);
 	}
 	memcpy(sv->data + prev_size, cstr, cstr_len);

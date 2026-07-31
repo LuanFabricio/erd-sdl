@@ -150,7 +150,6 @@ static ssize_t node_recursive_value_index(const HashMap **map, size_t node_index
 	char temp_buffer[HASH_MAP_TEMP_BUFFER_SIZE];
 	const HashMap* current_map = *map;
 	for (size_t i = 0; i < split_len - 1; i++) {
-		// TODO: Refactor/extract this
 		memset(temp_buffer, 0, sizeof(temp_buffer));
 		assert(sizeof(temp_buffer) > split->size);
 		memcpy(temp_buffer, split[i].data, split->size);
@@ -193,6 +192,8 @@ void node_value_to_cstr(const HashMap map, const size_t node_index, char *buffer
 				const ssize_t final_node_index = node_recursive_value_index(&current_map, node_index);
 				assert(final_node_index != -1);
 				// TODO: Add the buffer size as parameter
+				// Maybe create a macro with parameters and
+				// default values.
 				snprintf(
 					buffer,
 					NODE_VALUE_BUFFER_LEN,
