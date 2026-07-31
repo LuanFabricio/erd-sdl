@@ -25,6 +25,11 @@ typedef enum {
 	NODE_KIND_LEN,
 } Node_Kind;
 
+typedef enum {
+	NODE_RECURSIVE_KIND_KEY = '#',
+	NODE_RECURSIVE_KIND_VALUE = '$',
+} Node_Recursive_Kind;
+
 #define NODE_KEY_CAPACITY 100
 
 typedef struct {

@@ -165,7 +165,7 @@ static ssize_t node_recursive_value_index(const HashMap **map, size_t node_index
 	}
 	assert(sizeof(temp_buffer) > split->size);
 	memset(temp_buffer, 0, sizeof(temp_buffer));
-	memcpy(temp_buffer, split[split_len-1].data, split->size);
+	memcpy(temp_buffer, split[split_len-1].data, split[split_len-1].size-1);
 
 	ssize_t i = hash_map_key_index(current_map, temp_buffer);
 
@@ -174,6 +174,7 @@ static ssize_t node_recursive_value_index(const HashMap **map, size_t node_index
 		string_view_free(&split[i]);
 	}
 
+	*map = current_map;
 	return i;
 }
 
@@ -200,7 +201,32 @@ void node_value_to_cstr(const HashMap map, const size_t node_index, char *buffer
 					"%s=",
 					(char*)n.value);
 				const size_t buffer_offset = strlen(buffer);
-				node_value_to_cstr(*current_map, final_node_index, buffer + buffer_offset);
+				buffer += buffer_offset;
+
+				const char* n_value = (char*)n.value;
+				const size_t n_value_len = strlen(n_value);
+				const char recursive_last_char = n_value[n_value_len-1];
+
+				switch (recursive_last_char) {
+					case NODE_RECURSIVE_KIND_KEY: {
+						snprintf(
+							buffer,
+							NODE_VALUE_BUFFER_LEN,
+							"%s",
+							current_map->items[final_node_index].key);
+				      	} break;
+					case NODE_RECURSIVE_KIND_VALUE: {
+						node_value_to_cstr(*current_map, final_node_index, buffer);
+				      	} break;
+					default: {
+						log_format(
+							stderr,
+							LOG_LABEL_ERROR,
+							"Invalid recursive last key of %s invalid (%c|%d)\n",
+							n_value, recursive_last_char, recursive_last_char);
+						assert(false);
+					 }
+				}
 		       } break;
 		case NODE_KIND_STRING:
 			snprintf(buffer, NODE_VALUE_BUFFER_LEN, "%s", (char*)n.value);

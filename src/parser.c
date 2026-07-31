@@ -102,7 +102,13 @@ HashMap parse_from_file(FILE* file)
 			case TK_END_MAP: return map;
 			case TK_STRING_QUOTE: continue;
 		}
-		if (!is_alphanum(current_token) && current_token != TK_FLOAT && current_token != TK_RECURSIVE) {
+
+		// TODO: Create a should_skip function
+		const bool is_not_tk_float = current_token != TK_FLOAT;
+		const bool is_not_tk_recursive = current_token != TK_RECURSIVE;
+		const bool is_not_tk_recursive_kind = current_token != NODE_RECURSIVE_KIND_KEY
+			&& current_token != NODE_RECURSIVE_KIND_VALUE;
+		if (!is_alphanum(current_token) && is_not_tk_float && is_not_tk_recursive && is_not_tk_recursive_kind) {
 			continue;
 		}
 
