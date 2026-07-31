@@ -35,7 +35,7 @@ typedef struct {
 
 typedef da_create(Node) HashMap;
 
-size_t hash_map_key_index(const HashMap* map, const char* key);
+ssize_t hash_map_key_index(const HashMap* map, const char* key);
 void hash_map_append(HashMap* map, Node node);
 Node node_from_cstr(const char* key, const char* value);
 const char* node_kind_to_cstr(const Node_Kind kind);

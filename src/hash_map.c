@@ -32,7 +32,7 @@ static void* node_malloc_by_kind(const Node_Kind kind, size_t len)
 	return ptr;
 }
 
-size_t hash_map_key_index(const HashMap* map, const char* key)
+ssize_t hash_map_key_index(const HashMap* map, const char* key)
 {
 	da_for_each(map, Node) {
 		if (strcmp(loop.item->key, key) == 0) {
@@ -44,13 +44,13 @@ size_t hash_map_key_index(const HashMap* map, const char* key)
 
 void hash_map_append(HashMap* map, Node node)
 {
-	const size_t index = hash_map_key_index(map, node.key);
+	const ssize_t index = hash_map_key_index(map, node.key);
 	if (index != -1) {
 		log_format(stdout, LOG_LABEL_WARNING, "Key `%s` already exists in the hash map (index %lu).\n", node.key, index);
 
 		const Node* node = &map->items[index];
-		char temp_buffer[NODE_VALUE_BUFFER_LEN];
-		memset(temp_buffer, 0, NODE_VALUE_BUFFER_LEN);
+		char temp_buffer[HASH_MAP_TEMP_BUFFER_SIZE];
+		memset(temp_buffer, 0, sizeof(temp_buffer));
 		node_value_to_cstr(*map, index, temp_buffer);
 		log_format(
 			stdout,
