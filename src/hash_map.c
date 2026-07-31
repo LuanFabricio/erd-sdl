@@ -53,7 +53,7 @@ void hash_map_append(HashMap* map, Node node)
 		const Node* node = &map->items[index];
 		char temp_buffer[HASH_MAP_TEMP_BUFFER_SIZE];
 		memset(temp_buffer, 0, sizeof(temp_buffer));
-		node_value_to_cstr(*map, index, temp_buffer);
+		node_value_to_cstr(*map, index, temp_buffer, NODE_VALUE_BUFFER_LEN);
 		log_format(
 			stdout,
 			LOG_LABEL_INFO,
@@ -178,26 +178,25 @@ static ssize_t node_recursive_value_index(const HashMap **map, size_t node_index
 	return i;
 }
 
-void node_value_to_cstr(const HashMap map, const size_t node_index, char *buffer)
+// NOTE: Maybe create a macro with parameters and
+// default values.
+void node_value_to_cstr(const HashMap map, const size_t node_index, char *buffer, const size_t buffer_size)
 {
 	Node n = map.items[node_index];
 	switch (n.kind) {
 		case NODE_KIND_INT:
-			snprintf(buffer, NODE_VALUE_BUFFER_LEN, "%d", *(int*)n.value);
+			snprintf(buffer, buffer_size, "%d", *(int*)n.value);
 			break;
 		case NODE_KIND_FLOAT:
-			snprintf(buffer, NODE_VALUE_BUFFER_LEN, "%f", *(float*)n.value);
+			snprintf(buffer, buffer_size, "%f", *(float*)n.value);
 			break;
 		case NODE_KIND_RECURSIVE_DATA: {
 				const HashMap* current_map = &map;
 				const ssize_t final_node_index = node_recursive_value_index(&current_map, node_index);
 				assert(final_node_index != -1);
-				// TODO: Add the buffer size as parameter
-				// Maybe create a macro with parameters and
-				// default values.
 				snprintf(
 					buffer,
-					NODE_VALUE_BUFFER_LEN,
+					buffer_size,
 					"%s=",
 					(char*)n.value);
 				const size_t buffer_offset = strlen(buffer);
@@ -211,12 +210,16 @@ void node_value_to_cstr(const HashMap map, const size_t node_index, char *buffer
 					case NODE_RECURSIVE_KIND_KEY: {
 						snprintf(
 							buffer,
-							NODE_VALUE_BUFFER_LEN,
+							buffer_size,
 							"%s",
 							current_map->items[final_node_index].key);
 				      	} break;
 					case NODE_RECURSIVE_KIND_VALUE: {
-						node_value_to_cstr(*current_map, final_node_index, buffer);
+						node_value_to_cstr(
+							*current_map,
+							final_node_index,
+							buffer,
+							buffer_size - buffer_offset);
 				      	} break;
 					default: {
 						log_format(
@@ -229,12 +232,12 @@ void node_value_to_cstr(const HashMap map, const size_t node_index, char *buffer
 				}
 		       } break;
 		case NODE_KIND_STRING:
-			snprintf(buffer, NODE_VALUE_BUFFER_LEN, "%s", (char*)n.value);
+			snprintf(buffer, buffer_size, "%s", (char*)n.value);
 			break;
 		case NODE_KIND_MAP: {
 			HashMap m = *(HashMap*)n.value;
 			// NOTE: Maybe print the nested values
-			snprintf(buffer, NODE_VALUE_BUFFER_LEN, "map size %zu", m.size);
+			snprintf(buffer, buffer_size, "map size %zu", m.size);
 		} break;
 		default: {
 			log_format(
@@ -252,7 +255,7 @@ void hash_map_log(const HashMap map, const int depth)
 		Node node = map.items[i];
 		char buffer[NODE_VALUE_BUFFER_LEN];
 		memset(buffer, 0, NODE_VALUE_BUFFER_LEN);
-		node_value_to_cstr(map, i, buffer);
+		node_value_to_cstr(map, i, buffer, NODE_VALUE_BUFFER_LEN);
 		log_format(stdout, LOG_LABEL_INFO,
 				"\n"
 				"%*skey:%s\n"
