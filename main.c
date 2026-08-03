@@ -1,82 +1,42 @@
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <string.h>
 
-#include "log.h"
 #include "raylib.h"
+#include "raymath.h"
 
 #include "hash_map.h"
 #include "parser.h"
-#include "string_view.h"
+#include "log.h"
+
+#define MOUSE_DRAGGIN_SPEED 10.f
 
 int main(void)
 {
 	HashMap parsed_map = parse_from_filename("./sample.erd");
-	hash_map_log(parsed_map, 0);
-
-	log_format(
-		stdout,
-		LOG_LABEL_INFO,
-		"========================= LOG String_View =========================\n");
-
-	String_View sv = {0};
-	const char* cstr = "Hello, world!";
-	string_view_append(&sv, cstr);
-	log_format(
-		stdout,
-		LOG_LABEL_INFO,
-		SV_FORMAT"\n", (int)sv.size, sv.data);
-	log_format(
-		stdout,
-		LOG_LABEL_INFO,
-		"|"SV_FORMAT"| == %s (%b)\n",
-		(int)sv.size, sv.data,
-		cstr,
-		string_view_compare_cstr(sv, cstr));
-
-	string_view_append(&sv, "\nTesting");
-	string_view_append(&sv, "\n\tmore messages");
-	log_format(
-		stdout,
-		LOG_LABEL_INFO,
-		SV_FORMAT"\n", (int)sv.size, sv.data);
-	log_format(
-		stdout,
-		LOG_LABEL_INFO,
-		"|"SV_FORMAT"| == %s (%b)\n",
-		(int)sv.size, sv.data,
-		cstr,
-		string_view_compare_cstr(sv, cstr));
-
-
-	sv.size = 0;
-	string_view_append(&sv, "@v1.@v2.@v3");
-	string_view_strip_char(&sv, '@');
-	log_format(
-		stdout,
-		LOG_LABEL_INFO,
-		SV_FORMAT"\n", (int)sv.size, sv.data);
-
-	String_View *split = NULL;
-	const size_t split_len = string_view_split(sv, '.', &split);
-	log_format(
-		stdout,
-		LOG_LABEL_INFO,
-		"split_len: %lu\n", split_len);
-
-	for (size_t i = 0; i < split_len; i++) {
-		log_format(
-			stdout,
-			LOG_LABEL_INFO,
-			SV_FORMAT"\n",
-			(int)split[i].size, split[i].data);
-	}
-
-#if 0
 	InitWindow(720, 480,  "ERD");
 	char buffer[0xff];
 
+
+	Camera2D camera = {
+		.offset = {360, 0},
+		.target = {0, 0},
+		.rotation = 0,
+		.zoom = 1.f,
+	};
+
+	struct {
+		Vector2 origin;
+		bool active;
+	} anchor = {0};
+
+	SetTargetFPS(60);
 	while (!WindowShouldClose()) {
 		BeginDrawing();
+		ClearBackground(BLACK);
+
+		DrawFPS(0, 0);
+		BeginMode2D(camera);
 
 		int  x = 20;
 		const int y = 150;
@@ -86,17 +46,34 @@ int main(void)
 			Node node = parsed_map.items[i];
 			char temp_buffer[NODE_VALUE_BUFFER_LEN];
 			memset(temp_buffer, 0, sizeof(temp_buffer));
-			node_value_to_cstr(node, temp_buffer);
+			node_value_to_cstr(parsed_map, i, temp_buffer, sizeof(temp_buffer));
 			snprintf(buffer, sizeof(buffer), "%s: %s", node.key, temp_buffer);
 			DrawText(buffer, x, y, font_size, GREEN);
 			x += MeasureText(buffer, font_size) + padding;
 		}
+		EndMode2D();
 
 		EndDrawing();
+
+		const Vector2 mouse_pos = GetScreenToWorld2D(GetMousePosition(), camera);
+		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+			anchor.origin = mouse_pos;
+			anchor.active = true;
+		}
+		if (anchor.active) {
+			const Vector2 delta = Vector2Subtract(mouse_pos, anchor.origin);
+			camera.target = Vector2Subtract(
+				camera.target,
+				Vector2Scale(delta, MOUSE_DRAGGIN_SPEED * GetFrameTime()));
+		}
+
+		if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+			anchor.active = false;
+		}
+		camera.zoom += 10 * GetFrameTime() * GetMouseWheelMove();
 	}
 
 	CloseWindow();
-#endif
 
 	return 0;
 }
