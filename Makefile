@@ -13,3 +13,6 @@ build_folder:
 
 run: all
 	$(TARGET)
+
+debug: all
+	gf2 ./$(TARGET)
