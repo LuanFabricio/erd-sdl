@@ -7,6 +7,7 @@
 
 #include "hash_map.h"
 #include "parser.h"
+#include "table.h"
 #include "log.h"
 
 #define MOUSE_DRAGGIN_SPEED 10.f
@@ -16,7 +17,6 @@ int main(void)
 	HashMap parsed_map = parse_from_filename("./sample.erd");
 	InitWindow(720, 480,  "ERD");
 	char buffer[0xff];
-
 
 	Camera2D camera = {
 		.offset = {360, 0},
@@ -29,6 +29,11 @@ int main(void)
 		Vector2 origin;
 		bool active;
 	} anchor = {0};
+
+	hash_map_log(parsed_map, 0);
+
+	void* table_map_ptr = parsed_map.items[hash_map_key_index(&parsed_map, "table")].value;
+	Table t = table_create(table_map_ptr);
 
 	SetTargetFPS(60);
 	while (!WindowShouldClose()) {

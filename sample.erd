@@ -10,4 +10,19 @@ v4={
 	}
 },
 v5="teste",
-v6=@v4.@x1#
+v6=@v4.@x1#,
+table={
+	table_name="some_table",
+	rect={
+		x=42.42,
+		y=24.42,
+		w=60.0,
+		h=15.0,
+	},
+	rows={
+		row1="something",
+		row2="in",
+		row3="the",
+		row4="way",
+	}
+}
