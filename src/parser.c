@@ -69,12 +69,14 @@ static bool should_skip_token(int token)
 	const bool is_not_tk_recursive_kind = token != NODE_RECURSIVE_KIND_KEY
 		&& token != NODE_RECURSIVE_KIND_VALUE;
 	const bool is_underscore = token == '_';
+	const bool is_negative = token == '-';
 
 	return !is_alphanum(token)
 		&& is_not_tk_float
 		&& is_not_tk_recursive
 		&& is_not_tk_recursive_kind
-		&& !is_underscore;
+		&& !is_underscore
+		&& !is_negative;
 }
 
 HashMap parse_from_file(FILE* file)
