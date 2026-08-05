@@ -19,7 +19,7 @@ int main(void)
 	char buffer[0xff];
 
 	Camera2D camera = {
-		.offset = {360, 0},
+		.offset = {0, 0},
 		.target = {0, 0},
 		.rotation = 0,
 		.zoom = 1.f,
@@ -43,7 +43,9 @@ int main(void)
 		DrawFPS(0, 0);
 		BeginMode2D(camera);
 
-		int  x = 20;
+		table_draw(t);
+
+		int x = 0;
 		const int y = 150;
 		const int font_size = 32;
 		const int padding = 35;
@@ -56,6 +58,9 @@ int main(void)
 			DrawText(buffer, x, y, font_size, GREEN);
 			x += MeasureText(buffer, font_size) + padding;
 		}
+
+		DrawText("Test", -200, 0, 24, GREEN);
+
 		EndMode2D();
 
 		EndDrawing();

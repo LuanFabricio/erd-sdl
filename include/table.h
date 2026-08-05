@@ -19,3 +19,4 @@ typedef struct {
 
 
 Table table_create(const HashMap *map);
+void table_draw(const Table table);
