@@ -59,8 +59,6 @@ int main(void)
 			x += MeasureText(buffer, font_size) + padding;
 		}
 
-		DrawText("Test", -200, 0, 24, GREEN);
-
 		EndMode2D();
 
 		EndDrawing();
