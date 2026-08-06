@@ -8,18 +8,20 @@
 #include "hash_map.h"
 #include "log.h"
 
-#define TABLE_NAME_FONT_SIZE 32
+#define TABLE_NAME_FONT_SIZE 24
 #define TABLE_ROW_FONT_SIZE 16
 #define TABLE_PADDING 10
 
-static Vector2 get_text_size(const char* text, const int font_size)
+static Vector2 get_text_size(const char* text, int font_size)
 {
-	const float default_font_size = 10;
-	int spacing = default_font_size / font_size;
-	if (font_size < default_font_size) {
-		spacing = 1;
+        int default_font_size = 10;
+        if (font_size < default_font_size) {
+		font_size = default_font_size;
 	}
-	return MeasureTextEx(GetFontDefault(), text, font_size, spacing);
+        int spacing = font_size/default_font_size;
+
+        Vector2 size = MeasureTextEx(GetFontDefault(), text, (float)font_size, (float)spacing);
+	return size;
 }
 
 static void table_mesaure_size(Table *table)
@@ -93,13 +95,13 @@ void table_draw(const Table table)
 	const TableRect rect = table.rect;
 	DrawRectangleLines(rect.x, rect.y, rect.w, rect.h, GREEN);
 
+	Vector2 text_size = get_text_size(table.name, TABLE_NAME_FONT_SIZE);
 	DrawText(
 		table.name,
-		rect.x,
+		rect.x + (rect.w - text_size.x) / 2.f,
 		rect.y,
 		TABLE_NAME_FONT_SIZE, GREEN);
 
-	Vector2 text_size = get_text_size(table.name, TABLE_NAME_FONT_SIZE);
 	float y = rect.y + TABLE_PADDING + text_size.y;
 
 	const float line_y = y - (y - rect.y) / 4.f;
@@ -109,7 +111,7 @@ void table_draw(const Table table)
 		text_size = get_text_size(row, TABLE_ROW_FONT_SIZE);
 		DrawText(
 			row,
-			rect.x,
+			rect.x + (rect.w - text_size.x) / 2.f,
 			y,
 			TABLE_ROW_FONT_SIZE,
 			GREEN);
